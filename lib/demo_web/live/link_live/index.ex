@@ -2,13 +2,15 @@ defmodule DemoWeb.LinkLive.Index do
   use DemoWeb, :live_view
 
   alias Demo.Links
+  alias Demo.Accounts
 
   def mount(_params, _session, socket) do
-    user_id = (socket.assigns.current_user.id)
+    user = socket.assigns.current_user
+    user_id = user.id
 
     socket =
       socket
-      |> assign(:links, Links.list_links(user_id))
+      |> assign(:links, Links.list_links_by_user(user_id))
 
     {:ok, socket}
   end

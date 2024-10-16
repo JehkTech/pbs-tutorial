@@ -17,7 +17,7 @@ defmodule Demo.Links do
       [%Link{}, ...]
 
   """
-  def list_links(user_id) do
+  def list_links_by_user(user_id) do
     Repo.all(
       from l in Link,
       where: l.user_id == ^user_id
@@ -52,9 +52,9 @@ defmodule Demo.Links do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_link(attrs \\ %{}) do
+  def create_link(attrs \\ %{}, user) do
     %Link{}
-    |> Link.changeset(attrs)
+    |> Link.changeset(Map.put(attrs, :user_id, user.id))
     |> Repo.insert()
   end
 
