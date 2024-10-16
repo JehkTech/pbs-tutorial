@@ -20,7 +20,7 @@ defmodule DemoWeb.Router do
   scope "/", DemoWeb do
     pipe_through :browser
 
-    live "/", TodoLive, :Index
+    # get "/", TodoLive, :Home
   end
 
   # Other scopes may use custom stacks.
@@ -69,6 +69,7 @@ defmodule DemoWeb.Router do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
 
+      live "/", TodoLive, :Index
       live "/links", LinkLive.Index
       live "/links/new", LinkLive.New
     end
