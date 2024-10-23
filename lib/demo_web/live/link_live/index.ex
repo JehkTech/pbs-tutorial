@@ -2,7 +2,6 @@ defmodule DemoWeb.LinkLive.Index do
   use DemoWeb, :live_view
 
   alias Demo.Links
-  alias Demo.Accounts
 
   def mount(_params, _session, socket) do
     user = socket.assigns.current_user

@@ -1,9 +1,9 @@
-defmodule Demo.Todos.Todo do
+defmodule Demo.Schema.Todo do
   use Ecto.Schema
   import Ecto.Changeset
 
   schema "todos" do
-    field :done, :boolean, default: false
+    field :completed, :boolean, default: false
     field :title, :string
 
     timestamps(type: :utc_datetime)
@@ -12,7 +12,7 @@ defmodule Demo.Todos.Todo do
   @doc false
   def changeset(todo, attrs) do
     todo
-    |> cast(attrs, [:title, :done])
-    |> validate_required([:title, :done])
+    |> cast(attrs, [:title, :completed])
+    |> validate_required([:title])
   end
 end

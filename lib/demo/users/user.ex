@@ -158,4 +158,20 @@ defmodule Demo.Users.User do
       add_error(changeset, :current_password, "is not valid")
     end
   end
+
+  def authenticate(email, password) do
+    user = get_user_by_email(email)
+
+    if user && valid_password?(user, password) do
+      {:ok, user}
+    else
+      {:error, :invalid_credentials}
+    end
+    
+  end
+  defp get_user_by_email(_email) do
+    #Retrieve user by email
+    
+  end
+
 end

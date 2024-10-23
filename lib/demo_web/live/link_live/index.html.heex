@@ -12,6 +12,6 @@
     <%= link.url %>
   </div>
   <div class="text-sm">
-    <%= link.inserted_at %>
+    <%= link.inserted_at |> DateTime.to_string() %>
   </div>
 </div>

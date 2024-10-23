@@ -1,31 +1,70 @@
 defmodule DemoWeb.TodoLive do
   use DemoWeb, :live_view
+  import Phoenix.LiveView
   alias Demo.Todos
+  require Logger
 
-  @impl Phoenix.LiveView
+  @impl true
   def mount(_params, _session, socket) do
-    Todos.subscribe()
-
+    if connected?(socket), do: Todos.subscribe()
     {:ok, fetch(socket)}
   end
 
+# Add action
   @impl Phoenix.LiveView
-  def handle_event("add", %{"title" => title}, socket) do
-    Todos.create_todo(%{title: title})
-    {:noreply, fetch(socket)}
+  def handle_event("add", %{"todo" => todo_params}, socket) do
+    case Todos.create_todo(todo_params) do
+      {:ok, _todo} ->
+        {:noreply, fetch(socket)}
+      {:error, changeset} ->
+        Logger.error("Failed to create todo: #{inspect(changeset)}")
+      {:noreply, put_flash(socket, :error, "Failed to create todo")}
+    end
   end
 
-  @impl Phoenix.LiveView
+# Delete action
+  @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     todo = Todos.get_todo!(id)
-    {:ok, _} = Todos.delete_todo(id)
-    {:noreply, fetch(socket)}
+    case Todos.delete_todo(todo) do
+      {:ok, _} ->
+        {:noreply, fetch(socket)}
+      {:error, changeset} ->
+        Logger.error("Failed to delete todo: #{inspect(changeset)}")
+        {:noreply, put_flash(socket, :error, "Failed to delete todo")}
+    end
   end
 
-  @impl Phoenix.LiveView
-  def handle_info({Todos, [:todo | _], _}, socket) do
-    {:noreply, fetch(socket)}
+# Edit action
+@impl true
+def handle_event("edit", %{"id" => id}, socket) do
+  {:noreply, assign(socket, edit_id: String.to_integer(id))}
+end
+
+# Update action
+@impl true
+def handle_event("update", %{"id" => id, "todo" => todo_params}, socket) do
+  todo = Todos.get_todo!(id)
+  case Todos.update_todo(todo, todo_params) do
+    {:ok, _todo} ->
+      {:noreply, fetch(socket) |> assign(edit_id: nil)}
+    {:error, changeset} ->
+      Logger.error("Failed to update todo: #{inspect(changeset)}")
+      {:noreply, put_flash(socket, :error, "Failed to update todo")}
   end
+end
+
+# Cancel edit action
+@impl true
+def handle_event("cancel_edit", _, socket) do
+  {:noreply, assign(socket, edit_id: nil)}
+end
+
+
+@impl Phoenix.LiveView
+def handle_info({Todos, [:todo | _], _}, socket) do
+  {:noreply, fetch(socket)}
+end
 
   # @impl true
   # def mount(_params, _session, socket) do
@@ -42,7 +81,10 @@ defmodule DemoWeb.TodoLive do
   #   {:ok, socket}
   # end
 
-  defp fetch(socket) do
-    assign(socket, todos: Todos.list_todos())
+  def fetch(socket) do
+    todos = Demo.Todos.list_todos
+    socket
+    |> assign(:todos, todos) 
+    |> assign(:edit_id, nil)
   end
 end

@@ -7,6 +7,7 @@ defmodule Demo.Users do
   alias Demo.Repo
 
   alias Demo.Users.{User, UserToken, UserNotifier}
+  alias Bcrypt
 
   ## Database getters
 
@@ -58,6 +59,12 @@ defmodule Demo.Users do
       ** (Ecto.NoResultsError)
 
   """
+  def get_user(id) do
+    Repo.get(Demo.Users.User, id)
+    
+  end
+
+
   def get_user!(id), do: Repo.get!(User, id)
 
   ## User registration
@@ -350,4 +357,16 @@ defmodule Demo.Users do
       {:error, :user, changeset, _} -> {:error, changeset}
     end
   end
+
+  def authenticate(email, password) do
+    user = Repo.get_by(User, email: email)
+
+    if user && Bcrypt.verify_pass(password, user.hashed_password) do
+      {:ok, user}
+    else
+      {:error, :invalid_credentials}
+    end
+  end
+
+
 end

@@ -11,6 +11,7 @@ config :demo,
   ecto_repos: [Demo.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+
 # Configures the endpoint
 config :demo, DemoWeb.Endpoint,
   url: [host: "localhost"],
@@ -20,7 +21,12 @@ config :demo, DemoWeb.Endpoint,
     layout: false
   ],
   pubsub_server: Demo.PubSub,
-  live_view: [signing_salt: "6zskDnWU"]
+  live_view: [signing_salt: "6zskDnWU"],
+  session: [
+    store: :cookie,
+    key: "_demo_session",
+    signing_salt: "jKeHaotiaEMangChiwnE1"
+  ]
 
 # Configures the mailer
 #

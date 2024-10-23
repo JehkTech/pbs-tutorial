@@ -3,22 +3,22 @@ defmodule Demo.Todos do
   The Todos context.
   """
 
-  import Ecto.Query, warn: false
   alias Demo.Repo
+  alias Demo.Schema.Todo
 
-  alias Demo.Todos.Todo
-
-  @topic inspect(__MODULE__)
+# Subscribe
   def subscribe do
-    Phoenix.PubSub.subscribe(Demo.PubSub, @topic)
+    Phoenix.PubSub.subscribe(Demo.PubSub, "todos")
   end
-
-  defp broadcast_change({:ok, result}, event) do
-    Phoenix.PubSub.broadcast(Demo.PubSub, @topic, {__MODULE__, event, result})
-    {:ok, result}
+  defp broadcast_change({:ok, todo} =result, event) do
+    Phoenix.PubSub.broadcast(Demo.PubSub, "todos", {__MODULE__, event, todo})
+    result
   end
+  defp broadcast_change(todo, _event), do: todo
+  # def change_todo(%Todo{} = todo, attrs \\ %{}) do
+  #   Todo.changeset(todo, attrs)
+  # end
 
-  defp broadcast_change(error, _event), do: error
 
   @doc """
   Returns the list of todos.
@@ -47,7 +47,9 @@ defmodule Demo.Todos do
       ** (Ecto.NoResultsError)
 
   """
-  def get_todo!(id), do: Repo.get!(Todo, id)
+  def get_todo!(id) do
+   Repo.get!(Todo, id)
+  end
 
   @doc """
   Creates a todo.
@@ -65,7 +67,7 @@ defmodule Demo.Todos do
     %Todo{}
     |> Todo.changeset(attrs)
     |> Repo.insert()
-    |> broadcast_change({:todo, :created})
+    |> broadcast_change([:todo, :created])
   end
 
   @doc """
@@ -84,7 +86,7 @@ defmodule Demo.Todos do
     todo
     |> Todo.changeset(attrs)
     |> Repo.update()
-    |> broadcast_change({:todo, :updated})
+    |> broadcast_change([:todo, :updated])
   end
 
   @doc """
@@ -100,21 +102,19 @@ defmodule Demo.Todos do
 
   """
   def delete_todo(%Todo{} = todo) do
-    todo
-    |> Repo.delete()
-    |> broadcast_change({:todo, :deleted})
+    Repo.delete(todo)
+    |> broadcast_change([:todo, :deleted])
   end
 
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking todo changes.
+  # @doc """
+  # Returns an `%Ecto.Changeset{}` for tracking todo changes.
 
-  ## Examples
+  # ## Examples
 
-      iex> change_todo(todo)
-      %Ecto.Changeset{data: %Todo{}}
+  #     iex> change_todo(todo)
+  #     %Ecto.Changeset{data: %Todo{}}
 
-  """
-  def change_todo(%Todo{} = todo, attrs \\ %{}) do
-    Todo.changeset(todo, attrs)
-  end
+  # """
+  
+  
 end

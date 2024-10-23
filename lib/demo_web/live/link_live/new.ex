@@ -17,6 +17,7 @@ defmodule DemoWeb.LinkLive.New do
     {:ok, socket}
   end
 
+  @impl Phoenix.LiveView
   def handle_event("save", %{"link" => link_params}, socket) do
     params = link_params
     |> Map.put("user_id", socket.assigns.current_user.id)
