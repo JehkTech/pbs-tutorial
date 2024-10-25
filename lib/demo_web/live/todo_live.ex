@@ -4,10 +4,20 @@ defmodule DemoWeb.TodoLive do
   alias Demo.Todos
   require Logger
 
+
   @impl true
   def mount(_params, _session, socket) do
-    if connected?(socket), do: Todos.subscribe()
-    {:ok, fetch(socket)}
+    user = socket.assigns.current_user
+
+    if connected?(socket) do 
+      Todos.subscribe(user.id)
+    end
+
+    {:ok, 
+    socket
+    |> assign(:page_title,"Todo List")
+    |> assign(:todos, Todos.list_todos(user.id))
+    |> assign(:edit_id, nil)}
   end
 
 # Add action
@@ -25,7 +35,9 @@ defmodule DemoWeb.TodoLive do
 # Delete action
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    todo = Todos.get_todo!(id)
+    user = socket.assigns.current_user
+    
+    todo = Todos.get_todo!(id, user.id)
     case Todos.delete_todo(todo) do
       {:ok, _} ->
         {:noreply, fetch(socket)}
@@ -44,7 +56,9 @@ end
 # Update action
 @impl true
 def handle_event("update", %{"id" => id, "todo" => todo_params}, socket) do
-  todo = Todos.get_todo!(id)
+  user = socket.assigns.current_user
+
+  todo = Todos.get_todo!(id, user.id)
   case Todos.update_todo(todo, todo_params) do
     {:ok, _todo} ->
       {:noreply, fetch(socket) |> assign(edit_id: nil)}
@@ -82,7 +96,8 @@ end
   # end
 
   def fetch(socket) do
-    todos = Demo.Todos.list_todos
+  user = socket.assigns.current_user
+    todos = Demo.Todos.list_todos(user.id)
     socket
     |> assign(:todos, todos) 
     |> assign(:edit_id, nil)

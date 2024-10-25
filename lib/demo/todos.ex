@@ -3,22 +3,15 @@ defmodule Demo.Todos do
   The Todos context.
   """
 
+  import Ecto.Query, warn: false
   alias Demo.Repo
   alias Demo.Schema.Todo
+    
 
 # Subscribe
-  def subscribe do
-    Phoenix.PubSub.subscribe(Demo.PubSub, "todos")
+  def subscribe(user_id) do
+    Phoenix.PubSub.subscribe(Demo.PubSub, "todos:#{user_id}")
   end
-  defp broadcast_change({:ok, todo} =result, event) do
-    Phoenix.PubSub.broadcast(Demo.PubSub, "todos", {__MODULE__, event, todo})
-    result
-  end
-  defp broadcast_change(todo, _event), do: todo
-  # def change_todo(%Todo{} = todo, attrs \\ %{}) do
-  #   Todo.changeset(todo, attrs)
-  # end
-
 
   @doc """
   Returns the list of todos.
@@ -29,8 +22,10 @@ defmodule Demo.Todos do
       [%Todo{}, ...]
 
   """
-  def list_todos do
-    Repo.all(Todo)
+  def list_todos(user_id) do
+  Todo
+  |> where(user_id: ^user_id)
+  |> Repo.all()
   end
 
   @doc """
@@ -47,8 +42,10 @@ defmodule Demo.Todos do
       ** (Ecto.NoResultsError)
 
   """
-  def get_todo!(id) do
-   Repo.get!(Todo, id)
+  def get_todo!(id, user_id) do
+    Todo
+    |> where(user_id: ^user_id)
+    |> Repo.get!(id)
   end
 
   @doc """
@@ -63,11 +60,11 @@ defmodule Demo.Todos do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_todo(attrs \\ %{}) do
+  def create_todo(attrs \\ %{}, user_id) do
     %Todo{}
-    |> Todo.changeset(attrs)
+    |> Todo.changeset(Map.put(attrs, "user_id", user_id))
     |> Repo.insert()
-    |> broadcast_change([:todo, :created])
+    |> broadcast_change([:todo, :created], user_id)
   end
 
   @doc """
@@ -86,7 +83,7 @@ defmodule Demo.Todos do
     todo
     |> Todo.changeset(attrs)
     |> Repo.update()
-    |> broadcast_change([:todo, :updated])
+    |> broadcast_change([:todo, :updated], todo.user_id)
   end
 
   @doc """
@@ -103,7 +100,7 @@ defmodule Demo.Todos do
   """
   def delete_todo(%Todo{} = todo) do
     Repo.delete(todo)
-    |> broadcast_change([:todo, :deleted])
+    |> broadcast_change([:todo, :deleted], todo.user_id)
   end
 
   # @doc """
@@ -115,6 +112,17 @@ defmodule Demo.Todos do
   #     %Ecto.Changeset{data: %Todo{}}
 
   # """
-  
+  defp broadcast_change({:ok, todo} =result, event, user_id) do
+    Phoenix.PubSub.broadcast(
+      Demo.PubSub, 
+      "todos:#{user_id}",
+      {__MODULE__, event, todo}
+      )
+    result
+  end
+  defp broadcast_change(result, _event, _user_id), do: result
+  # def change_todo(%Todo{} = todo, attrs \\ %{}) do
+  #   Todo.changeset(todo, attrs)
+  # end
   
 end

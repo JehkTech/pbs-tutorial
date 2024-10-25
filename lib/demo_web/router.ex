@@ -20,9 +20,9 @@ defmodule DemoWeb.Router do
   scope "/", DemoWeb do
     pipe_through :browser
 
-    get "/login", SessionController, :new
-    post "/login", SessionController, :create
-    delete "/logout", SessionController, :delete
+    # get "/login", SessionController, :new
+    # post "/login", SessionController, :create
+    # delete "/logout", SessionController, :delete
     # get "/", TodoLive, :Home
   end
 
@@ -69,10 +69,12 @@ defmodule DemoWeb.Router do
 
     live_session :require_authenticated_user,
       on_mount: [{DemoWeb.UserAuth, :ensure_authenticated}] do
+      
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
 
       live "/", TodoLive, :Index
+      # Links Page
       live "/links", LinkLive.Index
       live "/links/new", LinkLive.New
     end
