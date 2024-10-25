@@ -23,12 +23,20 @@ defmodule DemoWeb.TodoLive do
 # Add action
   @impl Phoenix.LiveView
   def handle_event("add", %{"todo" => todo_params}, socket) do
-    case Todos.create_todo(todo_params) do
+    #Debug the parameters
+    IO.inspect(todo_params, label: "Original todo_params")
+    IO.inspect(socket.assigns.current_user.id, label: "User ID")
+
+    case Todos.create_todo(todo_params, socket.assigns.current_user.id) do
       {:ok, _todo} ->
         {:noreply, fetch(socket)}
       {:error, changeset} ->
+        #Debug the full changeset
+        IO.inspect(changeset.changes, label: "Changeset changes")
+        IO.inspect(changeset.error, label: "Changeset.error")
+
         Logger.error("Failed to create todo: #{inspect(changeset)}")
-      {:noreply, put_flash(socket, :error, "Failed to create todo")}
+        {:noreply, put_flash(socket, :error, "!!! Failed to create todo !!!")}
     end
   end
 
@@ -43,7 +51,7 @@ defmodule DemoWeb.TodoLive do
         {:noreply, fetch(socket)}
       {:error, changeset} ->
         Logger.error("Failed to delete todo: #{inspect(changeset)}")
-        {:noreply, put_flash(socket, :error, "Failed to delete todo")}
+        {:noreply, put_flash(socket, :error, "!!! Failed to delete todo !!!")}
     end
   end
 
@@ -57,8 +65,8 @@ end
 @impl true
 def handle_event("update", %{"id" => id, "todo" => todo_params}, socket) do
   user = socket.assigns.current_user
-
   todo = Todos.get_todo!(id, user.id)
+
   case Todos.update_todo(todo, todo_params) do
     {:ok, _todo} ->
       {:noreply, fetch(socket) |> assign(edit_id: nil)}
@@ -67,6 +75,21 @@ def handle_event("update", %{"id" => id, "todo" => todo_params}, socket) do
       {:noreply, put_flash(socket, :error, "Failed to update todo")}
   end
 end
+
+@impl true
+def handle_event("toggle", %{"id" => id}, socket) do
+  user = socket.assigns.current_user
+  todo = Todos.get_todo!(id, user.id)
+
+  case Todos.update_todo(todo, %{completed: !todo.completed}) do
+    {:ok, _todo} -> 
+     {:noreply, fetch(socket)}
+    {:error, changeset} ->
+     Logger.error("Failed to toggle todo: #{inspect(changeset)} ")
+     {:noreply, socket}  
+  end  
+end
+
 
 # Cancel edit action
 @impl true

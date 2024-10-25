@@ -4,8 +4,9 @@ defmodule Demo.Todos do
   """
 
   import Ecto.Query, warn: false
-  alias Demo.Repo
   alias Demo.Schema.Todo
+  alias Demo.Repo
+  
     
 
 # Subscribe
@@ -61,8 +62,11 @@ defmodule Demo.Todos do
 
   """
   def create_todo(attrs \\ %{}, user_id) do
+
+    attrs = Map.put(attrs, "user_id", user_id)
+
     %Todo{}
-    |> Todo.changeset(Map.put(attrs, "user_id", user_id))
+    |> Todo.changeset(attrs)
     |> Repo.insert()
     |> broadcast_change([:todo, :created], user_id)
   end
