@@ -24,7 +24,7 @@
       <div class="flex items-center justify-between p-4 bg-white shadow rounded-lg">
         <%= if @edit_id == todo.id do %>
           <form phx-submit="update" class="flex-1 flex gap-2">
-            <input type="hidden" name="_id" value={todo.id} />
+            <input type="hidden" name="id" value={todo.id} />
             <input type="text" name="todo[title]" value={todo.title}
               class="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
               required />

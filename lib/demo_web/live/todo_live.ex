@@ -65,6 +65,8 @@ end
 @impl true
 def handle_event("update", %{"id" => id, "todo" => todo_params}, socket) do
   user = socket.assigns.current_user
+
+  # First get the existing todo
   todo = Todos.get_todo!(id, user.id)
 
   case Todos.update_todo(todo, todo_params) do
